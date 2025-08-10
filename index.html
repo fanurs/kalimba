@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>34-Key Kalimba Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #8B7355 0%, #D2B48C 50%, #8B7355 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        
+        .main-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        .sidebar {
+            background: linear-gradient(135deg, #4A3428 0%, #6B4E3D 50%, #4A3428 100%);
+            border-radius: 20px;
+            padding: 20px;
+            width: 200px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sidebar h2 {
+            color: #FFF8DC;
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .scale-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .scale-btn {
+            background: linear-gradient(180deg, #5A4A3A 0%, #3A2A1A 100%);
+            color: #FFF8DC;
+            border: 1px solid #2A1A0A;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .scale-btn:hover {
+            background: linear-gradient(180deg, #6A5A4A 0%, #4A3A2A 100%);
+            transform: translateY(-1px);
+        }
+        
+        .scale-btn.active {
+            background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+            color: #2A1A0A;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+        
+        .scale-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            color: #FFF8DC;
+            font-size: 12px;
+            min-height: 80px;
+        }
+        
+        .scale-info h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #FFD700;
+        }
+        
+        .scale-notes {
+            line-height: 1.5;
+        }
+        
+        .kalimba-container {
+            background: linear-gradient(135deg, #654321 0%, #8B4513 50%, #654321 100%);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+                        inset 0 2px 5px rgba(255, 255, 255, 0.1);
+            flex: 1;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #FFF8DC;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .row-label {
+            text-align: center;
+            color: #FFF8DC;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .keys-row {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 3px;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        
+        .key {
+            width: 40px;
+            border-radius: 4px 4px 8px 8px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .key-white {
+            background: linear-gradient(180deg, #FAFAFA 0%, #E0E0E0 100%);
+            color: #333;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border: 1px solid #CCC;
+        }
+        
+        .key-black {
+            background: linear-gradient(180deg, #4A4A4A 0%, #1A1A1A 100%);
+            color: #FFF;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid #000;
+        }
+        
+        .key.highlighted {
+            border: 2px solid #FFD700 !important;
+            box-shadow: 0 4px 8px rgba(255, 215, 0, 0.4),
+                        0 0 20px rgba(255, 215, 0, 0.3);
+        }
+        
+        /* Gray out non-highlighted keys when a scale is selected */
+        .scale-active .key:not(.highlighted) {
+            opacity: 0.4;
+            filter: grayscale(0.7);
+        }
+        
+        .scale-active .key:not(.highlighted).key-white {
+            background: linear-gradient(180deg, #D0D0D0 0%, #A0A0A0 100%);
+        }
+        
+        .scale-active .key:not(.highlighted).key-black {
+            background: linear-gradient(180deg, #3A3A3A 0%, #1A1A1A 100%);
+        }
+        
+        .key:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+        
+        .key.active {
+            transform: translateY(2px);
+            filter: brightness(0.9);
+        }
+        
+        .sound-hole {
+            width: 100px;
+            height: 100px;
+            margin: 30px auto;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #2C1810, #000000);
+            box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.8),
+                        inset 0 -5px 10px rgba(139, 69, 19, 0.3);
+        }
+        
+        .instructions {
+            text-align: center;
+            color: #FFF8DC;
+            font-size: 14px;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+        
+        .frequency-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #FFD700;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .frequency-display.show {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                order: 2;
+            }
+            .scale-buttons {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Sidebar for scale selection -->
+        <div class="sidebar">
+            <h2>Select Major Scale</h2>
+            <div class="scale-buttons" id="scaleButtons">
+                <!-- Scale buttons will be generated by JavaScript -->
+            </div>
+            <div class="scale-info" id="scaleInfo">
+                <h3>Scale Notes</h3>
+                <div class="scale-notes" id="scaleNotes">
+                    Select a scale to highlight its notes
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main kalimba container -->
+        <div class="kalimba-container">
+            <h1>34-Key Kalimba</h1>
+            
+            <!-- Upper Row - C# Major -->
+            <div class="row-label">Upper Row - C# Major Scale</div>
+            <div class="keys-row" id="upperRow"></div>
+            
+            <!-- Sound Hole -->
+            <div class="sound-hole"></div>
+            
+            <!-- Lower Row - C Major -->
+            <div class="row-label">Lower Row - C Major Scale</div>
+            <div class="keys-row" id="lowerRow"></div>
+            
+            <div class="instructions">
+                Click or tap keys to play • Select a scale from the sidebar to highlight its notes
+            </div>
+        </div>
+    </div>
+    
+    <div class="frequency-display" id="freqDisplay">
+        <div id="freqNote">--</div>
+        <div id="freqValue">-- Hz</div>
+    </div>
+
+    <script>
+        // Web Audio API setup
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Major scales mapping - each scale contains its constituent notes
+        const majorScales = {
+            'C': ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+            'C#': ['C#', 'D#', 'F', 'F#', 'G#', 'A#', 'C'],
+            'D': ['D', 'E', 'F#', 'G', 'A', 'B', 'C#'],
+            'D#': ['D#', 'F', 'G', 'G#', 'A#', 'C', 'D'],
+            'E': ['E', 'F#', 'G#', 'A', 'B', 'C#', 'D#'],
+            'F': ['F', 'G', 'A', 'A#', 'C', 'D', 'E'],
+            'F#': ['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'F'],
+            'G': ['G', 'A', 'B', 'C', 'D', 'E', 'F#'],
+            'G#': ['G#', 'A#', 'C', 'C#', 'D#', 'F', 'G'],
+            'A': ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#'],
+            'A#': ['A#', 'C', 'D', 'D#', 'F', 'G', 'A'],
+            'B': ['B', 'C#', 'D#', 'E', 'F#', 'G#', 'A#']
+        };
+        
+        // Currently selected scale
+        let selectedScale = null;
+        
+        // Frequency tables (calculated from A4 = 440 Hz)
+        const frequencies = {
+            // C Major scale frequencies
+            'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23,
+            'G4': 392.00, 'A4': 440.00, 'B4': 493.88,
+            'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46,
+            'G5': 783.99, 'A5': 880.00, 'B5': 987.77,
+            'C6': 1046.50, 'D6': 1174.66, 'E6': 1318.51,
+            
+            // C# Major scale frequencies
+            'C#4': 277.18, 'D#4': 311.13, 'F4': 349.23, 'F#4': 369.99,
+            'G#4': 415.30, 'A#4': 466.16, 'C5': 523.25,
+            'C#5': 554.37, 'D#5': 622.25, 'F5': 698.46, 'F#5': 739.99,
+            'G#5': 830.61, 'A#5': 932.33, 'C6': 1046.50,
+            'C#6': 1108.73, 'D#6': 1244.51, 'F6': 1396.91
+        };
+        
+        // Key layouts following kalimba alternating pattern
+        const lowerRowLayout = [
+            { note: 'D6', height: 120 },
+            { note: 'B5', height: 130 },
+            { note: 'G5', height: 140 },
+            { note: 'E5', height: 150 },
+            { note: 'C5', height: 160 },
+            { note: 'A4', height: 170 },
+            { note: 'F4', height: 180 },
+            { note: 'D4', height: 190 },
+            { note: 'C4', height: 200 },
+            { note: 'E4', height: 190 },
+            { note: 'G4', height: 180 },
+            { note: 'B4', height: 170 },
+            { note: 'D5', height: 160 },
+            { note: 'F5', height: 150 },
+            { note: 'A5', height: 140 },
+            { note: 'C6', height: 130 },
+            { note: 'E6', height: 120 }
+        ];
+        
+        const upperRowLayout = [
+            { note: 'D#6', height: 120 },
+            { note: 'C6', height: 130 },
+            { note: 'G#5', height: 140 },
+            { note: 'F5', height: 150 },
+            { note: 'C#5', height: 160 },
+            { note: 'A#4', height: 170 },
+            { note: 'F#4', height: 180 },
+            { note: 'D#4', height: 190 },
+            { note: 'C#4', height: 200 },
+            { note: 'F4', height: 190 },
+            { note: 'G#4', height: 180 },
+            { note: 'C5', height: 170 },
+            { note: 'D#5', height: 160 },
+            { note: 'F#5', height: 150 },
+            { note: 'A#5', height: 140 },
+            { note: 'C#6', height: 130 },
+            { note: 'F6', height: 120 }
+        ];
+        
+        // Store references to all key elements
+        let keyElements = [];
+        
+        // Function to determine if a note is black or white key
+        function isBlackKey(note) {
+            return note.includes('#') || note.includes('b');
+        }
+        
+        // Function to play a note with Web Audio API
+        function playNote(frequency, noteName) {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.type = 'triangle';
+            oscillator.frequency.value = frequency;
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.2, audioContext.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 2);
+            
+            showFrequency(noteName, frequency);
+        }
+        
+        // Function to show frequency display
+        function showFrequency(note, freq) {
+            const display = document.getElementById('freqDisplay');
+            const noteEl = document.getElementById('freqNote');
+            const freqEl = document.getElementById('freqValue');
+            
+            noteEl.textContent = note;
+            freqEl.textContent = freq.toFixed(2) + ' Hz';
+            display.classList.add('show');
+            
+            setTimeout(() => {
+                display.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Function to highlight keys based on selected scale
+        function highlightScale(scaleName) {
+            // Clear all highlights
+            keyElements.forEach(key => {
+                key.element.classList.remove('highlighted');
+            });
+            
+            // Add or remove scale-active class to body
+            if (scaleName && majorScales[scaleName]) {
+                document.body.classList.add('scale-active');
+                const scaleNotes = majorScales[scaleName];
+                
+                // Highlight keys that belong to the selected scale
+                keyElements.forEach(key => {
+                    const noteWithoutOctave = key.note.replace(/[0-9]/g, '');
+                    if (scaleNotes.includes(noteWithoutOctave)) {
+                        key.element.classList.add('highlighted');
+                    }
+                });
+                
+                // Update scale info display
+                document.getElementById('scaleNotes').textContent = scaleNotes.join(' - ');
+            } else {
+                document.body.classList.remove('scale-active');
+                document.getElementById('scaleNotes').textContent = 'Select a scale to highlight its notes';
+            }
+        }
+        
+        // Function to create a key element
+        function createKey(keyData) {
+            const key = document.createElement('div');
+            const isBlack = isBlackKey(keyData.note);
+            
+            key.className = `key ${isBlack ? 'key-black' : 'key-white'}`;
+            key.style.height = keyData.height + 'px';
+            key.textContent = keyData.note;
+            
+            const frequency = frequencies[keyData.note];
+            
+            key.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                key.classList.add('active');
+                playNote(frequency, keyData.note);
+            });
+            
+            key.addEventListener('mouseup', () => {
+                key.classList.remove('active');
+            });
+            
+            key.addEventListener('mouseleave', () => {
+                key.classList.remove('active');
+            });
+            
+            key.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                key.classList.add('active');
+                playNote(frequency, keyData.note);
+            });
+            
+            key.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                key.classList.remove('active');
+            });
+            
+            // Store reference to this key element
+            keyElements.push({ element: key, note: keyData.note });
+            
+            return key;
+        }
+        
+        // Function to create scale selection buttons
+        function createScaleButtons() {
+            const container = document.getElementById('scaleButtons');
+            const scales = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            
+            scales.forEach(scale => {
+                const button = document.createElement('button');
+                button.className = 'scale-btn';
+                button.textContent = scale;
+                button.setAttribute('data-scale', scale);
+                
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.scale-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Toggle selection
+                    if (selectedScale === scale) {
+                        selectedScale = null;
+                        highlightScale(null);
+                    } else {
+                        selectedScale = scale;
+                        button.classList.add('active');
+                        highlightScale(scale);
+                    }
+                });
+                
+                container.appendChild(button);
+            });
+        }
+        
+        // Initialize the kalimba
+        function initKalimba() {
+            const lowerRow = document.getElementById('lowerRow');
+            const upperRow = document.getElementById('upperRow');
+            
+            // Clear key elements array
+            keyElements = [];
+            
+            // Create lower row keys
+            lowerRowLayout.forEach(keyData => {
+                lowerRow.appendChild(createKey(keyData));
+            });
+            
+            // Create upper row keys
+            upperRowLayout.forEach(keyData => {
+                upperRow.appendChild(createKey(keyData));
+            });
+            
+            // Create scale selection buttons
+            createScaleButtons();
+        }
+        
+        // Start the app
+        initKalimba();
+        
+        // Handle audio context on first user interaction
+        document.addEventListener('click', () => {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
